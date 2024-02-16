@@ -2,11 +2,12 @@ import { MongoClient } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import express from 'express';
 import cors from 'cors';
+import bodyParser from 'body-parser'
 import dotenv from 'dotenv';
 import router from './src/app/routes/index.js';
 const app = express()
 dotenv.config();
-
+app.use(bodyParser.json({ limit: '10mb', extended: true }));
 const port = process.env.PORT;
 
 app.use(cors());
