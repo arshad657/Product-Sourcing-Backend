@@ -1,5 +1,7 @@
 import express from 'express';
 import { ProductRoutes } from '../modules/products/ProductRoutes.js';
+import { PasswordRoutes } from '../modules/password/PasswordRoutes.js';
+import { ProductCategoriesRoutes } from '../modules/productCategories/ProductCategoriesRoutes.js';
 
 const router = express.Router();
 
@@ -7,7 +9,15 @@ let moduleRoutes = [
     {
       path: "/products",
       routes: ProductRoutes
-    }
+    },
+    {
+      path: "/change-password",
+      routes: PasswordRoutes
+    },
+    {
+      path: "/product-categories",
+      routes: ProductCategoriesRoutes
+    },
   ];
 
 // Define a middleware function

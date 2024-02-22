@@ -21,7 +21,9 @@ const client = new MongoClient(uri);
 await client.connect();
 export const Database = client.db('ChinaClient');
 export const Collections = {
-    productsCollection:  Database.collection('Products')
+    productsCollection:  Database.collection('Products'),
+    productCategoriesCollection:  Database.collection('ProductCategories'),
+    adminCredentialsCollection:  Database.collection('AdminCredentials'),
 }
     
   app.listen(port, () => {
