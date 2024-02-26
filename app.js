@@ -23,7 +23,7 @@ export const Database = client.db('ChinaClient');
 export const Collections = {
     productsCollection:  Database.collection('Products'),
     productCategoriesCollection:  Database.collection('ProductCategories'),
-    adminCredentialsCollection:  Database.collection('AdminCredentials'),
+    adminsCollection:  Database.collection('Admins'),
 }
     
   app.listen(port, () => {

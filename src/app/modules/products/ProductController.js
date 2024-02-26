@@ -22,10 +22,24 @@ cloudinary.config({
 });
 
  const getProducts = async (req, res) => {
-    const cursor = Collections.productsCollection.find()
-    const result = await cursor.toArray()
-      res.send(result)
-  }
+  try {
+    const { category, search } = req.query;
+    let cursor;
+    
+    if (category || search) {
+      cursor = Collections.productsCollection.find({ category: category, title: search  });
+    } else {
+      cursor = Collections.productsCollection.find();
+    }
+
+    const result = await cursor.toArray();
+    res.send(result);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).send({ error: 'Internal server error' });
+  } 
+};
+
   const getProductDetails = async (req, res) => {
     const id = req.params.id
     const query = {_id: new objectId(id)}
@@ -36,13 +50,13 @@ cloudinary.config({
   
   const createProductCategory = async (req, res) => {
     const body = req.body;
-    console.log(body)
     const { name } = body;
     if (!name.length > 0) {
       return res.status(400).json({ success: false, message: "Please provide all mandatory fields" });
     }
     try {
       // Insert new product
+      body.totalCount = 0;
       const newProductCategory = await Collections.productCategoriesCollection.insertOne(body);
       res.status(201).json({ success: true, message: "New product category uploaded!"});
     } catch (error) {
@@ -64,19 +78,27 @@ cloudinary.config({
     
     const createProduct = async (req, res) => {
       const body = req.body;
-      const { title, description, prices, images } = body;
+      
+      const { title, description, prices, images, category } = body;
       if ((!title.length || !description.length || !prices.length) > 0) {
         return res.status(400).json({ success: false, message: "Please provide all mandatory fields" });
       }
-    
       try {
-        // Insert new product
-        const newProduct = await Collections.productsCollection.insertOne(body);
-        const productId = newProduct.insertedId;
-    
-        // Upload images to Cloudinary
-        let imageList = [];
-        if (images && images.length > 0) {
+          // Insert new product
+          const newProduct = await Collections.productsCollection.insertOne(body);
+          const productId = newProduct.insertedId;
+        
+          //Update totalCount of the respective product category
+          const productCategoryToUpdate = await Collections.productCategoriesCollection.findOne(
+          { name: category },
+          );
+           await Collections.productCategoriesCollection.updateOne(
+          { name: category },
+          { $set: { totalCount: productCategoryToUpdate.totalCount + 1 } }
+          );
+          // Upload images to Cloudinary
+          let imageList = [];
+          if (images && images.length > 0) {
           const uploadPromises = images.map(async (image) => {
             const imageUrl = await uploadToCloudinary(image.dataURL);
             imageList.push(imageUrl);
@@ -89,9 +111,9 @@ cloudinary.config({
             { _id: productId },
             { $set: { images: uploadedImages } }
           );
-        }
+          }
     
-        res.status(201).json({ success: true, message: "New product uploaded!", productId });
+          res.status(201).json({ success: true, message: "New product uploaded!", productId });
       } catch (error) {
         console.error("Error creating product:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
@@ -101,6 +123,16 @@ cloudinary.config({
  const deleteProduct = async (req, res) => {
     const id = req.params.id;
     const query = {_id: new objectId(id)}
+
+    //Update totalCount of the respective product category
+    const productToDelete = await Collections.productsCollection.findOne(query);
+    const productCategoryToUpdate = await Collections.productCategoriesCollection.findOne(
+      { name: productToDelete.category },
+      );
+       await Collections.productCategoriesCollection.updateOne(
+      { name: productToDelete.category },
+      { $set: { totalCount: productCategoryToUpdate.totalCount - 1 } }
+      );
     const result = await Collections.productsCollection.deleteOne(query)
     res.send(result)
     }

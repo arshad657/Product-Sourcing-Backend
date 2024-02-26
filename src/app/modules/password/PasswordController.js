@@ -8,14 +8,16 @@ import { Collections } from "../../../../app.js"
         return res.status(400).json({ success: false, message: "Password and confirm password do not match" });
       }
       try{
-        const filter = { _id: 0 };
+        const filter = { role: "owner" };
         const options = { upsert: true };
         const updateDoc = {
           $set: {
-            password: newPassword
+            password: newPassword,
+            confirmPassword: confirmPassword
           },
         };
-        const result = await Collections.adminCredentialsCollection.updateOne(filter, updateDoc, options);
+        console.log(filter, updateDoc, options)
+        const result = await Collections.adminsCollection.updateOne(filter, updateDoc, options);
 
         res.status(201).json({ success: true, message: "New product uploaded!" });
       } catch (error) {
