@@ -2,6 +2,7 @@ import { MongoClient } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser'
 import dotenv from 'dotenv';
 import router from './src/app/routes/index.js';
@@ -12,6 +13,7 @@ const port = process.env.PORT;
 
 app.use(cors());
 app.use(express.json())
+app.use(cookieParser());
 
 app.use('/api/v1', router);
 

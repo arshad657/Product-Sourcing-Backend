@@ -21,14 +21,27 @@ cloudinary.config({
   api_secret: '-hWal4lURXy04deHxhXTXtDVedU' 
 });
 
- const getProducts = async (req, res) => {
+const getProducts = async (req, res) => {
   try {
     const { category, search } = req.query;
     let cursor;
-    
-    if (category || search) {
-      cursor = Collections.productsCollection.find({ category: category, title: search  });
+
+    if (category && search) {
+      // If both category and search are provided, filter by both conditions
+      cursor = Collections.productsCollection.find({
+        category: category,
+        title: { $regex: search, $options: 'i' }, // Case-insensitive search
+      });
+    } else if (category) {
+      // If only category is provided, filter by category
+      cursor = Collections.productsCollection.find({ category: category });
+    } else if (search) {
+      // If only search is provided, filter by search term
+      cursor = Collections.productsCollection.find({
+        title: { $regex: search, $options: 'i' }, // Case-insensitive search
+      });
     } else {
+      // If neither category nor search is provided, retrieve all products
       cursor = Collections.productsCollection.find();
     }
 
@@ -37,8 +50,9 @@ cloudinary.config({
   } catch (error) {
     console.error('Error fetching products:', error);
     res.status(500).send({ error: 'Internal server error' });
-  } 
+  }
 };
+
 
   const getProductDetails = async (req, res) => {
     const id = req.params.id
@@ -80,7 +94,9 @@ cloudinary.config({
       const body = req.body;
       
       const { title, description, prices, images, category } = body;
-      if ((!title.length || !description.length || !prices.length) > 0) {
+      if ((!title.length || !description.length || !prices.length ) > 0) {
+        return res.status(400).json({ success: false, message: "Please provide all mandatory fields" });
+      }else if(category === undefined) {
         return res.status(400).json({ success: false, message: "Please provide all mandatory fields" });
       }
       try {

@@ -23,6 +23,7 @@ let moduleRoutes = [
       path: "/admins",
       routes: AdminRoutes
     },
+    
   ];
 
 // Define a middleware function
